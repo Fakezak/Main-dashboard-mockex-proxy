@@ -1,40 +1,133 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <title>MockeX Main Dashboard</title>
-  <style>
-    body {
-      background:#0d0d0d;
-      color:#0f0;
-      font-family: monospace;
-      text-align:center;
-      padding:30px;
-    }
-    input, button {
-      margin:10px;
-      padding:8px;
-      border-radius:6px;
-      border:1px solid #0f0;
-      background:#111;
-      color:#0f0;
-      font-weight:bold;
-    }
-    button:hover { background:#0f0; color:#111; cursor:pointer; }
-    .box { margin:20px auto; padding:20px; border:2px solid #0f0; width:400px; border-radius:10px; }
-    .menu-btn { position:absolute; top:20px; right:20px; background:#ff0055; color:#fff; border:none; padding:10px 15px; border-radius:50%; font-size:20px; cursor:pointer; }
-    .menu-content { display:none; position:absolute; top:60px; right:20px; background:#111; border:2px solid #ff0055; border-radius:8px; width:180px; }
-    .menu-content a { display:block; color:#ff0055; padding:12px; text-decoration:none; border-bottom:1px solid #ff0055; }
-    .menu-content a:last-child { border-bottom:none; }
-    .menu-content a:hover { background:#ff0055; color:#111; }
-  </style>
+<meta charset="UTF-8">
+<title>MockeX Main Dashboard</title>
+<style>
+body{background:#111;color:#8affdb;font-family:monospace;text-align:center;padding:20px;}
+.box{margin:20px auto;padding:20px;border:2px solid #8affdb;width:450px;border-radius:12px;box-shadow:0 0 12px #8affdb;}
+input, button{margin:8px;padding:8px;border-radius:6px;border:1px solid #8affdb;background:#111;color:#8affdb;font-weight:bold;}
+button:hover{background:#8affdb;color:#111;cursor:pointer;animation:glitch 0.3s;}
+@keyframes glitch{0%{text-shadow:1px 0 #ff00ff,-1px 0 #00ffff;}50%{text-shadow:-1px 0 #ff00ff,1px 0 #00ffff;}100%{text-shadow:1px 0 #ff00ff,-1px 0 #00ffff;}}
+.menu-btn{position:absolute;top:20px;right:20px;background:#ff0055;color:#fff;border:none;padding:10px 15px;border-radius:50%;font-size:20px;cursor:pointer;}
+.menu-content{display:none;position:absolute;top:60px;right:20px;background:#111;border:2px solid #ff0055;border-radius:8px;width:220px;}
+.menu-content a{display:block;color:#ff0055;padding:12px;text-decoration:none;border-bottom:1px solid #ff0055;}
+.menu-content a:hover{background:#ff0055;color:#111;}
+.menu-content a:last-child{border-bottom:none;}
+</style>
 </head>
 <body>
 
-  <button class="menu-btn" id="menuBtn">☰</button>
-  <div class="menu-content" id="menuContent">
-    <a href="#" id="vipMenu">VIP Info</a>
-    <a href="#" id="placeholderMain">Main Dashboard URL</a>
+<button class="menu-btn" id="menuBtn">☰</button>
+<div class="menu-content" id="menuContent">
+  <a href="#" id="vipMenu">VIP Info</a>
+  <a href="#" id="placeholderMain">Main Dashboard URL</a>
+</div>
+
+<h1>☠️ MockeX Main Dashboard ☠️</h1>
+
+<div class="box" id="connectionBox">
+  <h2>Proxy Connection</h2>
+  <p>IP: <strong>11.88.18.103</strong></p>
+  <p>Port: <strong>7235</strong></p>
+  <button id="checkBtn">📡 Check Connection</button>
+  <p id="connectionStatus">Status: Not Connected</p>
+</div>
+
+<div class="box" id="uidBox" style="display:none;">
+  <h2>Enter UID</h2>
+  <input type="text" id="uidInput" placeholder="UID e.g. 12484796465">
+  <button id="saveBtn">💾 Save UID</button>
+  <p id="timerText">Timer: 0h 0m 0s</p>
+</div>
+
+<div class="box" id="vipBox" style="display:none;">
+  <h2>VIP Editor</h2>
+  <label>Amount: <input type="number" id="vipAmount" value="9999"></label><br>
+  <label>V Badge: <input type="checkbox" id="vBadge" checked></label><br>
+  <label>Friendlist: <input type="text" id="friendList" placeholder="Friend1,Friend2"></label><br>
+  <label>Skins Unlock: <input type="checkbox" id="skinsUnlock" checked></label><br>
+  <button id="applyVip">Apply VIP Settings</button>
+</div>
+
+<div class="box" id="ffBox" style="display:none;">
+  <h2>FF Fake Items Display</h2>
+  <button id="ffOpenBtn">🎮 Simulate FF Open</button>
+  <div id="ffItems"></div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+<script>
+const backendURL = "https://YOUR_BACKEND_URL"; // Replace with deployed Flask backend
+
+const menuBtn = document.getElementById("menuBtn");
+const menuContent = document.getElementById("menuContent");
+menuBtn.addEventListener("click",()=>{menuContent.style.display = menuContent.style.display==="block"?"none":"block";});
+
+const checkBtn = document.getElementById("checkBtn");
+const connectionStatus = document.getElementById("connectionStatus");
+const uidBox = document.getElementById("uidBox");
+const saveBtn = document.getElementById("saveBtn");
+const timerText = document.getElementById("timerText");
+const vipBox = document.getElementById("vipBox");
+const ffBox = document.getElementById("ffBox");
+const ffItems = document.getElementById("ffItems");
+
+let timerInterval;
+
+// Check Proxy Connection
+checkBtn.addEventListener("click", async ()=>{
+    const res = await axios.post(`${backendURL}/check_ip`, {ip:"11.88.18.103", port:"7235"});
+    if(res.data.connected){
+        connectionStatus.innerText="Status: Connected ✅";
+        uidBox.style.display="block";
+        vipBox.style.display="block";
+        ffBox.style.display="block";
+    } else {
+        connectionStatus.innerText="Status: Not Connected ❌";
+    }
+});
+
+// Save UID
+saveBtn.addEventListener("click", async ()=>{
+    const uid = document.getElementById("uidInput").value;
+    if(!uid){ alert("Enter UID"); return; }
+    const res = await axios.post(`${backendURL}/save_uid`, {uid});
+    const endTime = new Date(res.data.timerEnd);
+    localStorage.setItem("uidTimer", endTime);
+    updateTimer();
+    if(timerInterval) clearInterval(timerInterval);
+    timerInterval = setInterval(updateTimer,1000);
+});
+
+// Timer Update
+function updateTimer(){
+    const endTime = new Date(localStorage.getItem("uidTimer"));
+    let remaining = endTime - new Date();
+    if(remaining<0) remaining=0;
+    const h=Math.floor(remaining/1000/3600);
+    const m=Math.floor((remaining/1000%3600)/60);
+    const s=Math.floor((remaining/1000)%60);
+    timerText.innerText=`Timer: ${h}h ${m}m ${s}s`;
+}
+
+// VIP Editor
+document.getElementById("applyVip").addEventListener("click",()=>{
+    const amount = document.getElementById("vipAmount").value;
+    const vBadge = document.getElementById("vBadge").checked?"V1":"None";
+    const friends = document.getElementById("friendList").value.split(",");
+    const skins = document.getElementById("skinsUnlock").checked?"All unlocked":"None";
+    ffItems.innerHTML=`<p>Amount: ${amount}</p><p>V Badge: ${vBadge}</p><p>Friends: ${friends.join(", ")}</p><p>Skins: ${skins}</p>`;
+});
+
+// Simulate FF Open
+document.getElementById("ffOpenBtn").addEventListener("click",()=>{
+    alert("🎮 Simulating FF Open... Fake items applied to UID account!");
+});
+</script>
+
+</body>
+  </html>    <a href="#" id="placeholderMain">Main Dashboard URL</a>
   </div>
 
   <h1>☠️ MockeX Main Dashboard ☠️</h1>
