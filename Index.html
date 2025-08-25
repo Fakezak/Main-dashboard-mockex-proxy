@@ -6,22 +6,21 @@
 <style>
 body{background:#111;color:#8affdb;font-family:monospace;text-align:center;padding:20px;}
 .box{margin:20px auto;padding:20px;border:2px solid #8affdb;width:450px;border-radius:12px;box-shadow:0 0 12px #8affdb;}
-input, button{margin:8px;padding:8px;border-radius:6px;border:1px solid #8affdb;background:#111;color:#8affdb;font-weight:bold;}
+input,button{margin:8px;padding:10px 15px;border-radius:6px;border:1px solid #8affdb;background:#111;color:#8affdb;font-weight:bold;}
 button:hover{background:#8affdb;color:#111;cursor:pointer;animation:glitch 0.3s;}
 @keyframes glitch{0%{text-shadow:1px 0 #ff00ff,-1px 0 #00ffff;}50%{text-shadow:-1px 0 #ff00ff,1px 0 #00ffff;}100%{text-shadow:1px 0 #ff00ff,-1px 0 #00ffff;}}
-.menu-btn{position:absolute;top:20px;right:20px;background:#ff0055;color:#fff;border:none;padding:10px 15px;border-radius:50%;font-size:20px;cursor:pointer;}
-.menu-content{display:none;position:absolute;top:60px;right:20px;background:#111;border:2px solid #ff0055;border-radius:8px;width:220px;}
+.menu-btn{position:absolute;top:20px;right:20px;background:#ff0055;color:#fff;border:none;padding:10px 15px;border-radius:50%;font-size:20px;cursor:pointer;box-shadow:0 0 8px #ff0055;}
+.menu-content{display:none;position:absolute;top:60px;right:20px;background:#111;border:2px solid #ff0055;border-radius:8px;width:220px;box-shadow:0 0 12px #ff0055;}
 .menu-content a{display:block;color:#ff0055;padding:12px;text-decoration:none;border-bottom:1px solid #ff0055;}
-.menu-content a:hover{background:#ff0055;color:#111;}
 .menu-content a:last-child{border-bottom:none;}
+.menu-content a:hover{background:#ff0055;color:#111;}
 </style>
 </head>
 <body>
 
 <button class="menu-btn" id="menuBtn">☰</button>
 <div class="menu-content" id="menuContent">
-  <a href="#" id="vipMenu">VIP Info</a>
-  <a href="#" id="placeholderMain">Main Dashboard URL</a>
+  <a href="https://mockproxyz.netlify.app/" target="_blank">Proxy Dashboard</a>
 </div>
 
 <h1>☠️ MockeX Main Dashboard ☠️</h1>
@@ -56,10 +55,7 @@ button:hover{background:#8affdb;color:#111;cursor:pointer;animation:glitch 0.3s;
   <div id="ffItems"></div>
 </div>
 
-<script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
 <script>
-const backendURL = "https://YOUR_BACKEND_URL"; // Replace with deployed Flask backend
-
 const menuBtn = document.getElementById("menuBtn");
 const menuContent = document.getElementById("menuContent");
 menuBtn.addEventListener("click",()=>{menuContent.style.display = menuContent.style.display==="block"?"none":"block";});
@@ -74,12 +70,14 @@ const ffBox = document.getElementById("ffBox");
 const ffItems = document.getElementById("ffItems");
 
 let timerInterval;
+let uidTimerEnd = null;
 
 // Check Proxy Connection
-checkBtn.addEventListener("click", async ()=>{
-    const res = await axios.post(`${backendURL}/check_ip`, {ip:"11.88.18.103", port:"7235"});
-    if(res.data.connected){
-        connectionStatus.innerText="Status: Connected ✅";
+checkBtn.addEventListener("click", ()=>{
+    // Simulate proxy check
+    const connected = true; // Always connected for demo
+    if(connected){
+        connectionStatus.innerText="Status: Connected ✅\nAdd IP/Port to your device Wi-Fi to use FF.";
         uidBox.style.display="block";
         vipBox.style.display="block";
         ffBox.style.display="block";
@@ -89,12 +87,11 @@ checkBtn.addEventListener("click", async ()=>{
 });
 
 // Save UID
-saveBtn.addEventListener("click", async ()=>{
+saveBtn.addEventListener("click", ()=>{
     const uid = document.getElementById("uidInput").value;
     if(!uid){ alert("Enter UID"); return; }
-    const res = await axios.post(`${backendURL}/save_uid`, {uid});
-    const endTime = new Date(res.data.timerEnd);
-    localStorage.setItem("uidTimer", endTime);
+    uidTimerEnd = new Date(Date.now() + 60*60*1000); // 1 hour
+    localStorage.setItem("uidTimer", uidTimerEnd);
     updateTimer();
     if(timerInterval) clearInterval(timerInterval);
     timerInterval = setInterval(updateTimer,1000);
@@ -102,9 +99,9 @@ saveBtn.addEventListener("click", async ()=>{
 
 // Timer Update
 function updateTimer(){
-    const endTime = new Date(localStorage.getItem("uidTimer"));
-    let remaining = endTime - new Date();
-    if(remaining<0) remaining=0;
+    if(!uidTimerEnd) return;
+    let remaining = uidTimerEnd - new Date();
+    if(remaining<0) remaining = 0;
     const h=Math.floor(remaining/1000/3600);
     const m=Math.floor((remaining/1000%3600)/60);
     const s=Math.floor((remaining/1000)%60);
@@ -127,109 +124,4 @@ document.getElementById("ffOpenBtn").addEventListener("click",()=>{
 </script>
 
 </body>
-  </html>    <a href="#" id="placeholderMain">Main Dashboard URL</a>
-  </div>
-
-  <h1>☠️ MockeX Main Dashboard ☠️</h1>
-
-  <div class="box" id="loginBox">
-    <h2>Login</h2>
-    <input type="text" id="ipInput" placeholder="IP" value="11.88.18.103">
-    <input type="number" id="portInput" placeholder="Port" value="7235">
-    <button id="connectBtn">⚡ Connect</button>
-    <p id="speedText"></p>
-  </div>
-
-  <div class="box" id="uidBox" style="display:none;">
-    <h2>Enter UID</h2>
-    <input type="text" id="uidInput" placeholder="Your UID e.g. 12484796465">
-    <button id="saveBtn">💾 Save UID</button>
-    <p id="timerText">Timer: 0h 0m 0s</p>
-    <div id="userData"></div>
-  </div>
-
-<script>
-  const backendURL = "http://localhost:5000"; // change when deployed
-
-  const menuBtn = document.getElementById("menuBtn");
-  const menuContent = document.getElementById("menuContent");
-  const vipMenu = document.getElementById("vipMenu");
-
-  menuBtn.addEventListener("click", () => {
-    menuContent.style.display = menuContent.style.display === "block" ? "none" : "block";
-  });
-
-  vipMenu.addEventListener("click", () => {
-    alert("✅ VIP Status: You are a VIP! You can edit skins, coins, diamonds etc.");
-  });
-
-  const connectBtn = document.getElementById("connectBtn");
-  const ipInput = document.getElementById("ipInput");
-  const portInput = document.getElementById("portInput");
-  const speedText = document.getElementById("speedText");
-  const uidBox = document.getElementById("uidBox");
-  const saveBtn = document.getElementById("saveBtn");
-  const uidInput = document.getElementById("uidInput");
-  const timerText = document.getElementById("timerText");
-  const userDataDiv = document.getElementById("userData");
-
-  let timerInterval;
-
-  connectBtn.addEventListener("click", async () => {
-    const ip = ipInput.value;
-    const port = portInput.value;
-    if(ip === "11.88.18.103" && port == "7235"){
-      const speed = Math.floor(Math.random() * 50) + 20;
-      speedText.innerText = `Speed Test: ${speed}ms ✅ IP/Port Verified`;
-      uidBox.style.display = "block";
-    } else {
-      alert("❌ Invalid IP or Port");
-    }
-  });
-
-  saveBtn.addEventListener("click", async () => {
-    const uid = uidInput.value;
-    if(!uid){ alert("Enter UID"); return; }
-
-    const now = new Date();
-    const endTime = new Date(now.getTime() + 60*60*1000); // 1 hour
-
-    // Save to localStorage for persistence
-    localStorage.setItem(uid, endTime);
-
-    displayUserData(uid, endTime);
-    if(timerInterval) clearInterval(timerInterval);
-
-    timerInterval = setInterval(() => {
-      updateTimer(uid);
-    }, 1000);
-  });
-
-  function updateTimer(uid){
-    const endTime = new Date(localStorage.getItem(uid));
-    const now = new Date();
-    let remaining = endTime - now;
-    if(remaining <=0) remaining = 0;
-
-    const h = Math.floor(remaining/1000/3600);
-    const m = Math.floor((remaining/1000%3600)/60);
-    const s = Math.floor((remaining/1000)%60);
-    timerText.innerText = `Timer: ${h}h ${m}m ${s}s`;
-  }
-
-  function displayUserData(uid, endTime){
-    userDataDiv.innerHTML = `
-      <p>UID: ${uid}</p>
-      <p>VIP: ✅</p>
-      <p>V Badge: V1</p>
-      <p>Amount: 9999</p>
-      <p>Coins: 5000</p>
-      <p>Diamonds: 200</p>
-      <p>Skins: All unlocked</p>
-    `;
-    updateTimer(uid);
-  }
-</script>
-
-</body>
-                                       </html>
+</html>
